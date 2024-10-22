@@ -30,4 +30,25 @@ public class GroupEntity implements Serializable {
     @ManyToMany(mappedBy = "groups")
     @JsonBackReference // Prevent recursion by indicating this is the "back" side of the relationship
     private Set<UserAccountEntity> users = new HashSet<>();
+
+    // store roles and permission as a bitmask type
+    @Column(name = "permission", columnDefinition = "BIGINT DEFAULT 0")
+    private long permission;
+
+    /**
+     * <p>Add roles/permissions using bitwise OR </p>
+     * @param permission bitmask representation of role / permission
+     */
+    // Add roles/permissions using bitwise OR
+    public void addRoleOrPermission(long permission) {
+        this.permission |= permission;
+    }
+
+    /**
+     * <p>Check if a specific permission is present using bitwise AND </p>
+     * @param permission bitmask representation of role / permission
+     */
+    public boolean hasPermission(long permission) {
+        return (this.permission & permission) != 0;
+    }
 }

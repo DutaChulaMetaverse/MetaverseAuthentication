@@ -35,14 +35,19 @@ public class UserAccountService {
     }
 
     @Transactional
-    public void createUserAccount(UserAccountEntity userAccount) {
-        userAccountRepository.save(userAccount);
+    public UserAccountEntity createUserAccount(UserAccountEntity userAccount) {
+        return userAccountRepository.save(userAccount);
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
     public UserAccountEntity findUserAccountById(Long id) {
         Optional<UserAccountEntity> person = userAccountRepository.findById(id);
         return person.orElse(null);
+    }
+
+    @Transactional
+    public UserAccountEntity updateUserAccount(UserAccountEntity updatedUser){
+        return userAccountRepository.save(updatedUser);
     }
 
 

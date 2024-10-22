@@ -1,10 +1,14 @@
 package org.ukdw.controller;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.ukdw.dto.request.auth.*;
+import org.ukdw.dto.response.AppsCheckPermissionResponse;
 import org.ukdw.dto.response.RefreshAccessTokenResponse;
 import org.ukdw.dto.response.ResponseWrapper;
+import org.ukdw.entity.StudentEntity;
+import org.ukdw.entity.TeacherEntity;
 import org.ukdw.entity.UserAccountEntity;
 import org.ukdw.exception.InvalidTokenException;
 import org.ukdw.services.AuthService;
@@ -29,7 +33,6 @@ public class AuthController {
 
     private final AuthService authService;
 
-
     @ResponseBody
 //    @ApiOperation(value = "Signin")
     @PostMapping(value = "/signin", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -43,12 +46,39 @@ public class AuthController {
     }
 
     @ResponseBody
+    @PostMapping(value = "/signup/student", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> signupStudent(@Valid @RequestBody SignUpRequest request) {
+        StudentEntity newUser = authService.signupStudent(request);
+        ResponseWrapper<StudentEntity> response = new ResponseWrapper<>(HttpStatus.OK.value(), newUser);
+        return ResponseEntity.ok(response);
+    }
+
+    @ResponseBody
+    @PostMapping(value = "/signup/teacher", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> signupTeacher(@RequestBody SignUpRequest request) {
+        TeacherEntity newUser = authService.signupTeacher(request);
+        ResponseWrapper<TeacherEntity> response = new ResponseWrapper<>(HttpStatus.OK.value(), newUser);
+        return ResponseEntity.ok(response);
+    }
+
+    @ResponseBody
 //    @ApiOperation(value = "Meminta Acces Token")
     @PostMapping(value = "/refreshaccesstoken", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> refreshAccessToken(@RequestBody RefreshAccessTokenRequest request) throws InvalidTokenException {
         GoogleTokenResponse googleTokenResponse = authService.refreshAccessToken(request.getRefreshToken());
-        RefreshAccessTokenResponse tokenResponse = new RefreshAccessTokenResponse(googleTokenResponse.getAccessToken(),googleTokenResponse.getIdToken());
+        RefreshAccessTokenResponse tokenResponse = new RefreshAccessTokenResponse(googleTokenResponse.getAccessToken(), googleTokenResponse.getIdToken());
         ResponseWrapper<RefreshAccessTokenResponse> response = new ResponseWrapper<>(HttpStatus.OK.value(), tokenResponse);
+        return ResponseEntity.ok(response);
+    }
+
+    @ResponseBody
+//    @ApiOperation(value = "check permssion to access specific feature of client side.")
+    @PostMapping(value = "/apps-check-permission", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> appsCheckPermission(@Valid @RequestBody AppsCheckPermissionRequest request) throws InvalidTokenException {
+        ResponseWrapper<AppsCheckPermissionResponse> response = new ResponseWrapper<>(HttpStatus.OK.value(),
+                AppsCheckPermissionResponse.builder()
+                        .status(authService.canAccessFeature(request.getFeatureCode()))
+                        .build());
         return ResponseEntity.ok(response);
     }
 }
